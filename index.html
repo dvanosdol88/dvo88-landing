@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>David Van Osdol - Projects</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 4rem;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            color: #9ca3af;
+            font-weight: 300;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .project-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 1s ease-out;
+            animation-fill-mode: both;
+        }
+
+        .project-card:nth-child(1) { animation-delay: 0.1s; }
+        .project-card:nth-child(2) { animation-delay: 0.2s; }
+        .project-card:nth-child(3) { animation-delay: 0.3s; }
+        .project-card:nth-child(4) { animation-delay: 0.4s; }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .project-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .project-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .project-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .project-description {
+            color: #9ca3af;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .project-tech {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tech-tag {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            color: #d1d5db;
+        }
+
+        .project-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: gap 0.3s ease;
+        }
+
+        .project-link:hover {
+            gap: 1rem;
+        }
+
+        .contact-section {
+            text-align: center;
+            padding: 3rem 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeIn 1s ease-out 0.5s both;
+        }
+
+        .contact-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .contact-link {
+            color: #9ca3af;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #667eea;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-links {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>David Van Osdol</h1>
+            <p class="subtitle">Full Stack Developer & Creative Technologist</p>
+        </header>
+
+        <main>
+            <div class="projects-grid">
+                <a href="https://davidcfacfp.com" class="project-card" style="text-decoration: none;">
+                    <div class="project-icon">📄</div>
+                    <h2 class="project-title">Interactive Resume</h2>
+                    <p class="project-description">My professional resume with an interactive twist. Explore my career journey, skills, and experience.</p>
+                    <div class="project-tech">
+                        <span class="tech-tag">HTML/CSS</span>
+                        <span class="tech-tag">JavaScript</span>
+                        <span class="tech-tag">Responsive Design</span>
+                    </div>
+                    <span class="project-link">View Resume →</span>
+                </a>
+
+                <a href="https://car-dodge.dvo88.com" class="project-card" style="text-decoration: none;">
+                    <div class="project-icon">🏎️</div>
+                    <h2 class="project-title">Car Dodge Game</h2>
+                    <p class="project-description">A fast-paced browser game built with HTML5 Canvas. Dodge obstacles, destroy tanks, and compete for high scores!</p>
+                    <div class="project-tech">
+                        <span class="tech-tag">Canvas API</span>
+                        <span class="tech-tag">Tone.js</span>
+                        <span class="tech-tag">PostgreSQL</span>
+                        <span class="tech-tag">Node.js</span>
+                    </div>
+                    <span class="project-link">Play Game →</span>
+                </a>
+
+                <a href="https://dashboard.davidcfacfp.com" class="project-card" style="text-decoration: none;">
+                    <div class="project-icon">📊</div>
+                    <h2 class="project-title">Personal Dashboard</h2>
+                    <p class="project-description">A comprehensive dashboard integrating Google services, weather data, and personal productivity tools.</p>
+                    <div class="project-tech">
+                        <span class="tech-tag">React</span>
+                        <span class="tech-tag">OAuth 2.0</span>
+                        <span class="tech-tag">REST APIs</span>
+                        <span class="tech-tag">Express</span>
+                    </div>
+                    <span class="project-link">View Dashboard →</span>
+                </a>
+
+                <a href="https://a2a-dashboard.onrender.com" class="project-card" style="text-decoration: none;">
+                    <div class="project-icon">🤖</div>
+                    <h2 class="project-title">A2A System</h2>
+                    <p class="project-description">Agent-to-Agent communication system for AI collaboration. Real-time task coordination and workflow automation.</p>
+                    <div class="project-tech">
+                        <span class="tech-tag">Python</span>
+                        <span class="tech-tag">WebSockets</span>
+                        <span class="tech-tag">Flask</span>
+                        <span class="tech-tag">AI/ML</span>
+                    </div>
+                    <span class="project-link">Explore A2A →</span>
+                </a>
+            </div>
+        </main>
+
+        <footer class="contact-section">
+            <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Let's Connect</h3>
+            <p style="color: #9ca3af;">Interested in collaborating or have questions about my work?</p>
+            <div class="contact-links">
+                <a href="mailto:david@davidcfacfp.com" class="contact-link">Email</a>
+                <a href="https://github.com/dvanosdol88" class="contact-link">GitHub</a>
+                <a href="https://davidcfacfp.com" class="contact-link">Full Resume</a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Add smooth hover effects
+        document.querySelectorAll('.project-card').forEach(card => {
+            card.addEventListener('mouseenter', function(e) {
+                this.style.transform = 'translateY(-5px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function(e) {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Add parallax effect on mouse move
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            document.querySelectorAll('.project-card').forEach((card, index) => {
+                const speed = 0.5 + (index * 0.1);
+                const xOffset = (x - 0.5) * speed;
+                const yOffset = (y - 0.5) * speed;
+                
+                card.style.transform = `translate(${xOffset}px, ${yOffset}px)`;
+            });
+        });
+    </script>
+</body>
+</html>
