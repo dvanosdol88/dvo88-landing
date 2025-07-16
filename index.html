@@ -383,6 +383,7 @@
             <h1 class="text-4xl font-bold text-gray-800 dark:text-white">My Projects</h1>
             <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Click any text to edit • Select text and press Alt+S for strikethrough • Changes are saved automatically</p>
             <p class="text-gray-500 dark:text-gray-400 mt-2">An overview of my projects and their status. To-do's and fixes will be picked up by my AI agents.</p>
+            <button onclick="if(window.autoPopulateLinks) { autoPopulateLinks(); alert('Links populated where available!'); }" class="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline">Auto-populate GitHub links</button>
         </header>
 
         <!-- The ID 'project-grid' is used by SortableJS to enable drag-and-drop -->
@@ -1166,5 +1167,8 @@
             });
         });
     </script>
+    
+    <!-- Auto-populate project links based on known mappings -->
+    <script src="populate-links.js"></script>
 </body>
 </html>
