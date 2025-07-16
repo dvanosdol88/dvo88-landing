@@ -25,11 +25,11 @@
             flex-shrink: 0;
         }
         /* Style for the text when checkbox is checked */
-        .task-item.checked span {
+        .task-item.checked .task-text {
             text-decoration: line-through;
             color: #9ca3af; /* gray-400 */
         }
-        .dark .task-item.checked span {
+        .dark .task-item.checked .task-text {
              color: #4b5563; /* gray-600 */
         }
         /* Style for the drag-and-drop placeholder */
@@ -45,12 +45,88 @@
         .draggable-card:active {
             cursor: grabbing;
         }
+        /* Editable elements styling */
+        [contenteditable="true"] {
+            outline: none;
+            position: relative;
+            cursor: text;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        [contenteditable="true"]:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        [contenteditable="true"]:focus {
+            background-color: rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
+        .dark [contenteditable="true"]:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .dark [contenteditable="true"]:focus {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .project-title[contenteditable="true"] {
+            display: inline-block;
+            min-width: 100px;
+        }
+        .task-text {
+            flex: 1;
+            min-width: 50px;
+        }
+        /* Add button styling */
+        .add-task-btn {
+            margin-top: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+            color: #6b7280;
+            background: transparent;
+            border: 1px dashed #d1d5db;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            text-align: left;
+        }
+        .add-task-btn:hover {
+            color: #3b82f6;
+            border-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+        .dark .add-task-btn {
+            color: #9ca3af;
+            border-color: #4b5563;
+        }
+        .dark .add-task-btn:hover {
+            color: #60a5fa;
+            border-color: #60a5fa;
+            background-color: rgba(96, 165, 250, 0.1);
+        }
+        /* Delete button styling */
+        .delete-task {
+            opacity: 0;
+            margin-left: 0.5rem;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 0.875rem;
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s;
+        }
+        .task-item:hover .delete-task {
+            opacity: 1;
+        }
+        .delete-task:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-white via-teal-50 to-green-50 dark:from-gray-900 dark:to-slate-800 text-gray-900 dark:text-gray-100 transition-colors duration-300">
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
         <header class="mb-8">
             <h1 class="text-4xl font-bold text-gray-800 dark:text-white">My Projects</h1>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Click any text to edit • Changes are saved automatically</p>
             <p class="text-gray-500 dark:text-gray-400 mt-2">An overview of my projects and their status. To-do's and fixes will be picked up by my AI agents.</p>
         </header>
 
@@ -59,132 +135,302 @@
             
             <!-- Project Card 1 -->
             <div class="draggable-card bg-gradient-to-br from-teal-100 to-teal-300 dark:from-teal-900 dark:to-teal-700 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 ease-in-out p-4">
-                <h2 class="text-xl font-semibold mb-3 text-teal-900 dark:text-teal-100">Website Redesign</h2>
+                <h2 class="text-xl font-semibold mb-3 text-teal-900 dark:text-teal-100 project-title" contenteditable="true">Website Redesign</h2>
                 <ul class="space-y-2">
                     <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
-                        <span>Finalize new logo concept</span>
+                        <span class="task-text" contenteditable="true">Finalize new logo concept</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                     <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
-                        <span>Create wireframes for homepage</span>
+                        <span class="task-text" contenteditable="true">Create wireframes for homepage</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                     <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-red-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-red-500/50">
-                        <span>Fix mobile menu bug</span>
+                        <span class="task-text" contenteditable="true">Fix mobile menu bug</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                 </ul>
+                <button class="add-task-btn" onclick="addTask(this)">+ Add task</button>
             </div>
 
             <!-- Project Card 2 -->
             <div class="draggable-card bg-gradient-to-br from-emerald-100 to-emerald-300 dark:from-emerald-900 dark:to-emerald-700 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 ease-in-out p-4">
-                <h2 class="text-xl font-semibold mb-3 text-emerald-900 dark:text-emerald-100">Mobile App Launch</h2>
+                <h2 class="text-xl font-semibold mb-3 text-emerald-900 dark:text-emerald-100 project-title" contenteditable="true">Mobile App Launch</h2>
                 <ul class="space-y-2">
                     <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
-                        <span>Develop onboarding screens</span>
+                        <span class="task-text" contenteditable="true">Develop onboarding screens</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                     <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-red-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-red-500/50">
-                        <span>Address push notification issue</span>
+                        <span class="task-text" contenteditable="true">Address push notification issue</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                     <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-red-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-red-500/50">
-                        <span>Fix crash on Android 12</span>
+                        <span class="task-text" contenteditable="true">Fix crash on Android 12</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                      <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
-                        <span>Prepare app store screenshots</span>
+                        <span class="task-text" contenteditable="true">Prepare app store screenshots</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                 </ul>
+                <button class="add-task-btn" onclick="addTask(this)">+ Add task</button>
             </div>
 
             <!-- Project Card 3 -->
             <div class="draggable-card bg-gradient-to-br from-green-100 to-green-300 dark:from-green-900 dark:to-green-700 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 ease-in-out p-4">
-                <h2 class="text-xl font-semibold mb-3 text-green-900 dark:text-green-100">API Integration</h2>
+                <h2 class="text-xl font-semibold mb-3 text-green-900 dark:text-green-100 project-title" contenteditable="true">API Integration</h2>
                 <ul class="space-y-2">
                     <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
-                        <span>Write documentation for endpoints</span>
+                        <span class="task-text" contenteditable="true">Write documentation for endpoints</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                     <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
-                        <span>Set up staging environment</span>
+                        <span class="task-text" contenteditable="true">Set up staging environment</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                     <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-red-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-red-500/50">
-                        <span>Correct authentication error</span>
+                        <span class="task-text" contenteditable="true">Correct authentication error</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                 </ul>
+                <button class="add-task-btn" onclick="addTask(this)">+ Add task</button>
             </div>
             
             <!-- Project Card 4 -->
             <div class="draggable-card bg-gradient-to-br from-cyan-100 to-cyan-300 dark:from-cyan-900 dark:to-cyan-700 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 ease-in-out p-4">
-                <h2 class="text-xl font-semibold mb-3 text-cyan-900 dark:text-cyan-100">Marketing Campaign</h2>
+                <h2 class="text-xl font-semibold mb-3 text-cyan-900 dark:text-cyan-100 project-title" contenteditable="true">Marketing Campaign</h2>
                 <ul class="space-y-2">
                     <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
-                        <span>Design social media assets</span>
+                        <span class="task-text" contenteditable="true">Design social media assets</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                     <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
-                        <span>Draft email newsletter</span>
+                        <span class="task-text" contenteditable="true">Draft email newsletter</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                      <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
-                        <span>Schedule blog posts</span>
+                        <span class="task-text" contenteditable="true">Schedule blog posts</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                 </ul>
+                <button class="add-task-btn" onclick="addTask(this)">+ Add task</button>
             </div>
 
             <!-- Project Card 5 -->
             <div class="draggable-card bg-gradient-to-br from-lime-100 to-lime-300 dark:from-lime-900 dark:to-lime-700 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 ease-in-out p-4">
-                <h2 class="text-xl font-semibold mb-3 text-lime-900 dark:text-lime-100">Q3 Financial Report</h2>
+                <h2 class="text-xl font-semibold mb-3 text-lime-900 dark:text-lime-100 project-title" contenteditable="true">Q3 Financial Report</h2>
                 <ul class="space-y-2">
                     <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
-                        <span>Gather sales data</span>
+                        <span class="task-text" contenteditable="true">Gather sales data</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                     <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-red-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-red-500/50">
-                        <span>Fix calculation error in P&L</span>
+                        <span class="task-text" contenteditable="true">Fix calculation error in P&L</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                 </ul>
+                <button class="add-task-btn" onclick="addTask(this)">+ Add task</button>
             </div>
 
              <!-- Project Card 6 -->
             <div class="draggable-card bg-gradient-to-br from-sky-100 to-sky-300 dark:from-sky-900 dark:to-sky-700 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 ease-in-out p-4">
-                <h2 class="text-xl font-semibold mb-3 text-sky-900 dark:text-sky-100">New Feature Rollout</h2>
+                <h2 class="text-xl font-semibold mb-3 text-sky-900 dark:text-sky-100 project-title" contenteditable="true">New Feature Rollout</h2>
                 <ul class="space-y-2">
                     <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
-                        <span>User acceptance testing</span>
+                        <span class="task-text" contenteditable="true">User acceptance testing</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                     <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-red-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-red-500/50">
-                        <span>Resolve UI glitches on dashboard</span>
+                        <span class="task-text" contenteditable="true">Resolve UI glitches on dashboard</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                      <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
                         <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
-                        <span>Deploy to production</span>
+                        <span class="task-text" contenteditable="true">Deploy to production</span>
+                        <span class="delete-task" onclick="deleteTask(this)">×</span>
                     </li>
                 </ul>
+                <button class="add-task-btn" onclick="addTask(this)">+ Add task</button>
             </div>
         </div>
     </div>
 
     <script>
-        // This script adds the line-through style when a checkbox is checked.
-        document.addEventListener('DOMContentLoaded', () => {
-            const taskItems = document.querySelectorAll('.task-item');
+        // Storage key for persistence
+        const STORAGE_KEY = 'dvo88-project-dashboard';
 
-            taskItems.forEach(item => {
-                const checkbox = item.querySelector('input[type="checkbox"]');
-                checkbox.addEventListener('change', () => {
-                    if (checkbox.checked) {
-                        item.classList.add('checked');
-                    } else {
-                        item.classList.remove('checked');
+        // Load saved data from localStorage
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch (e) {
+                    console.error('Error loading saved data:', e);
+                }
+            }
+            return null;
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            const projects = [];
+            document.querySelectorAll('.draggable-card').forEach((card, index) => {
+                const title = card.querySelector('.project-title').innerText;
+                const tasks = [];
+                card.querySelectorAll('.task-item').forEach(task => {
+                    const checkbox = task.querySelector('input[type="checkbox"]');
+                    const text = task.querySelector('.task-text').innerText;
+                    const accentColor = checkbox.classList.contains('accent-red-500') ? 'red' : 'blue';
+                    tasks.push({
+                        text: text,
+                        checked: checkbox.checked,
+                        accentColor: accentColor
+                    });
+                });
+                projects.push({
+                    title: title,
+                    tasks: tasks,
+                    colorClass: card.className,
+                    index: index
+                });
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+        }
+
+        // Add a new task
+        function addTask(button) {
+            const card = button.closest('.draggable-card');
+            const ul = card.querySelector('ul');
+            
+            const li = document.createElement('li');
+            li.className = 'flex items-center text-gray-700 dark:text-gray-300 task-item';
+            li.innerHTML = `
+                <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
+                <span class="task-text" contenteditable="true">New task</span>
+                <span class="delete-task" onclick="deleteTask(this)">×</span>
+            `;
+            
+            ul.appendChild(li);
+            
+            // Add checkbox listener
+            const checkbox = li.querySelector('input[type="checkbox"]');
+            checkbox.addEventListener('change', handleCheckboxChange);
+            
+            // Add contenteditable save listener
+            const taskText = li.querySelector('.task-text');
+            taskText.addEventListener('blur', saveData);
+            
+            // Focus on the new task
+            taskText.focus();
+            selectAllText(taskText);
+            
+            saveData();
+        }
+
+        // Delete a task
+        function deleteTask(deleteBtn) {
+            const taskItem = deleteBtn.closest('.task-item');
+            taskItem.remove();
+            saveData();
+        }
+
+        // Handle checkbox change
+        function handleCheckboxChange(e) {
+            const checkbox = e.target;
+            const taskItem = checkbox.closest('.task-item');
+            if (checkbox.checked) {
+                taskItem.classList.add('checked');
+            } else {
+                taskItem.classList.remove('checked');
+            }
+            saveData();
+        }
+
+        // Select all text in an element
+        function selectAllText(element) {
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load saved data
+            const savedData = loadData();
+            if (savedData) {
+                // Apply saved data
+                savedData.forEach(projectData => {
+                    const cards = document.querySelectorAll('.draggable-card');
+                    if (cards[projectData.index]) {
+                        const card = cards[projectData.index];
+                        
+                        // Update title
+                        const titleElement = card.querySelector('.project-title');
+                        if (titleElement) {
+                            titleElement.innerText = projectData.title;
+                        }
+                        
+                        // Update tasks
+                        const ul = card.querySelector('ul');
+                        ul.innerHTML = ''; // Clear existing tasks
+                        
+                        projectData.tasks.forEach(taskData => {
+                            const li = document.createElement('li');
+                            li.className = 'flex items-center text-gray-700 dark:text-gray-300 task-item';
+                            if (taskData.checked) {
+                                li.classList.add('checked');
+                            }
+                            
+                            const accentClass = taskData.accentColor === 'red' ? 'accent-red-500' : 'accent-blue-500';
+                            const focusClass = taskData.accentColor === 'red' ? 'focus:ring-red-500/50' : 'focus:ring-blue-500/50';
+                            
+                            li.innerHTML = `
+                                <input type="checkbox" class="mr-3 ${accentClass} bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 ${focusClass}" ${taskData.checked ? 'checked' : ''}>
+                                <span class="task-text" contenteditable="true">${taskData.text}</span>
+                                <span class="delete-task" onclick="deleteTask(this)">×</span>
+                            `;
+                            
+                            ul.appendChild(li);
+                        });
+                    }
+                });
+            }
+
+            // Add event listeners to all checkboxes
+            document.querySelectorAll('.task-item input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', handleCheckboxChange);
+            });
+
+            // Add save listeners to all contenteditable elements
+            document.querySelectorAll('[contenteditable="true"]').forEach(element => {
+                element.addEventListener('blur', saveData);
+                
+                // Prevent newlines in contenteditable
+                element.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        element.blur();
                     }
                 });
             });
@@ -193,8 +439,9 @@
             const grid = document.getElementById('project-grid');
             if (grid) {
                 new Sortable(grid, {
-                    animation: 150, // Animation speed
-                    ghostClass: 'sortable-ghost' // Class for the placeholder
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: saveData // Save when cards are reordered
                 });
             }
         });
