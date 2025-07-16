@@ -193,6 +193,8 @@
             border: 1px solid #d1d5db;
             border-radius: 0.375rem;
             font-size: 0.875rem;
+            background: white;
+            color: #111827;
         }
         .dark .links-editor input {
             background: #374151;
@@ -653,15 +655,15 @@
         <div class="links-editor">
             <h3>Edit Project Links</h3>
             <label>
-                <div style="margin-bottom: 0.25rem; font-size: 0.875rem; color: #6b7280;">Live URL</div>
+                <div style="margin-bottom: 0.25rem; font-size: 0.875rem;" class="text-gray-600 dark:text-gray-300">Live URL</div>
                 <input type="url" id="live-url-input" placeholder="https://example.com">
             </label>
             <label>
-                <div style="margin-bottom: 0.25rem; font-size: 0.875rem; color: #6b7280;">GitHub Repository</div>
+                <div style="margin-bottom: 0.25rem; font-size: 0.875rem;" class="text-gray-600 dark:text-gray-300">GitHub Repository</div>
                 <input type="url" id="github-url-input" placeholder="https://github.com/username/repo">
             </label>
             <label>
-                <div style="margin-bottom: 0.25rem; font-size: 0.875rem; color: #6b7280;">Render Dashboard</div>
+                <div style="margin-bottom: 0.25rem; font-size: 0.875rem;" class="text-gray-600 dark:text-gray-300">Render Dashboard</div>
                 <input type="url" id="render-url-input" placeholder="https://dashboard.render.com/...">
             </label>
             <div class="links-editor-buttons">
@@ -676,11 +678,11 @@
         <div class="links-editor">
             <h3>Create New Project</h3>
             <label>
-                <div style="margin-bottom: 0.25rem; font-size: 0.875rem; color: #6b7280;">Project Name</div>
+                <div style="margin-bottom: 0.25rem; font-size: 0.875rem;" class="text-gray-600 dark:text-gray-300">Project Name</div>
                 <input type="text" id="project-name-input" placeholder="My New Project">
             </label>
             <label>
-                <div style="margin-bottom: 0.25rem; font-size: 0.875rem; color: #6b7280;">Choose Color Theme</div>
+                <div style="margin-bottom: 0.25rem; font-size: 0.875rem;" class="text-gray-600 dark:text-gray-300">Choose Color Theme</div>
                 <div class="color-picker">
                     <div class="color-option selected" data-color="teal" style="background: linear-gradient(135deg, #14b8a6, #5eead4);"></div>
                     <div class="color-option" data-color="emerald" style="background: linear-gradient(135deg, #10b981, #86efac);"></div>
