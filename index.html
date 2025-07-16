@@ -38,6 +38,19 @@
             background-color: #a5f3fc; /* A light cyan color */
             border-radius: 0.75rem; /* rounded-xl */
         }
+        /* Task drag and drop styling */
+        .task-item {
+            cursor: grab;
+            transition: all 0.2s;
+        }
+        .task-item:active {
+            cursor: grabbing;
+        }
+        .task-item.sortable-ghost {
+            opacity: 0.4;
+            background-color: #dbeafe; /* A light blue color */
+            border-radius: 0.375rem;
+        }
         /* Add a grab cursor to indicate items are draggable */
         .draggable-card:hover {
             cursor: grab;
@@ -912,6 +925,9 @@
             selectAllText(taskText);
             
             saveData();
+            
+            // Reinitialize task sorting for the updated list
+            initializeTaskSorting();
         }
 
         // Delete a task
@@ -1148,6 +1164,9 @@
             titleElement.focus();
             selectAllText(titleElement);
             
+            // Initialize task sorting for the new project
+            initializeTaskSorting();
+            
             // Verify save after a short delay
             setTimeout(() => {
                 const saved = localStorage.getItem(STORAGE_KEY);
@@ -1165,6 +1184,29 @@
             const container = button.closest('.card-container');
             container.classList.toggle('flipped');
             saveData();
+        }
+
+        // Initialize task sorting for all task lists
+        function initializeTaskSorting() {
+            // Get all task lists (both front and back of cards)
+            const taskLists = document.querySelectorAll('.space-y-2');
+            
+            taskLists.forEach(list => {
+                // Skip if it's not a task list or already initialized
+                if (!list.querySelector('.task-item') || list.sortableInstance) {
+                    return;
+                }
+                
+                // Create sortable instance
+                list.sortableInstance = new Sortable(list, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    filter: '.add-task-btn', // Don't make the add button draggable
+                    onEnd: function(evt) {
+                        saveData(); // Save when tasks are reordered
+                    }
+                });
+            });
         }
 
         // Toggle strikethrough on selected text
@@ -1331,6 +1373,9 @@
                     }
                 });
                 
+                // Initialize task sorting for all loaded cards
+                initializeTaskSorting();
+                
                 // Ensure the add button is at the end
                 if (addProjectCard && addProjectCard.parentNode !== grid) {
                     grid.appendChild(addProjectCard);
@@ -1373,6 +1418,9 @@
                     onEnd: saveData // Save when cards are reordered
                 });
             }
+            
+            // Initialize SortableJS on task lists
+            initializeTaskSorting();
             
             // Add click listener to modal overlays
             document.getElementById('links-modal').addEventListener('click', (e) => {
