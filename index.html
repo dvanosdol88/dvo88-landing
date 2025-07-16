@@ -1178,6 +1178,56 @@
                 if (addProjectCard && addProjectCard.parentNode !== grid) {
                     grid.appendChild(addProjectCard);
                 }
+            } else {
+                // Create initial sample projects if no saved data exists
+                const sampleProjects = [
+                    {
+                        title: "Website Redesign",
+                        color: "teal",
+                        tasks: [
+                            { text: "Finalize new logo concept", checked: false, accentColor: "blue" },
+                            { text: "Create wireframes for homepage", checked: false, accentColor: "blue" },
+                            { text: "Fix mobile menu bug", checked: false, accentColor: "red" }
+                        ],
+                        forLaterTasks: [
+                            { text: "Add dark mode support", checked: false, accentColor: "gray" }
+                        ],
+                        links: { live: "", github: "", render: "" },
+                        isFlipped: false
+                    },
+                    {
+                        title: "Mobile App Launch",
+                        color: "purple",
+                        tasks: [
+                            { text: "Implement push notifications", checked: false, accentColor: "blue" },
+                            { text: "Optimize app performance", checked: false, accentColor: "blue" },
+                            { text: "Fix login bug", checked: false, accentColor: "red" }
+                        ],
+                        forLaterTasks: [
+                            { text: "Add biometric authentication", checked: false, accentColor: "gray" }
+                        ],
+                        links: { live: "", github: "", render: "" },
+                        isFlipped: false
+                    },
+                    {
+                        title: "API Integration",
+                        color: "cyan",
+                        tasks: [
+                            { text: "Write documentation for endpoints", checked: false, accentColor: "blue" },
+                            { text: "Set up staging environment", checked: false, accentColor: "blue" },
+                            { text: "Correct authentication error", checked: false, accentColor: "red" }
+                        ],
+                        forLaterTasks: [
+                            { text: "Add API rate limiting", checked: false, accentColor: "gray" }
+                        ],
+                        links: { live: "", github: "", render: "" },
+                        isFlipped: false
+                    }
+                ];
+                
+                // Save sample data and reload
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(sampleProjects));
+                location.reload();
             }
 
             // Add event listeners to all checkboxes
