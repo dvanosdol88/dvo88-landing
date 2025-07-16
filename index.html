@@ -156,9 +156,18 @@
             text-decoration: none;
             transition: all 0.2s;
         }
+        .project-link.has-link {
+            color: #374151;
+            background: rgba(0, 0, 0, 0.15);
+            font-weight: 500;
+        }
         .dark .project-link {
             color: #9ca3af;
             background: rgba(255, 255, 255, 0.05);
+        }
+        .dark .project-link.has-link {
+            color: #f9fafb;
+            background: rgba(255, 255, 255, 0.15);
         }
         .project-link:hover {
             color: #3b82f6;
@@ -393,39 +402,54 @@
             right: 0;
             bottom: 0;
         }
-        /* Flip button styling */
-        .flip-button {
+        /* Corner lift effect styling */
+        .card-corner-lift {
             position: absolute;
-            top: 0.5rem;
-            right: 2.5rem;
-            width: 1.75rem;
-            height: 1.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
-            border: none;
-            border-radius: 0.375rem;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-bottom: 20px solid rgba(0, 0, 0, 0.1);
+            border-left: 20px solid transparent;
             cursor: pointer;
-            font-size: 1rem;
-            opacity: 0.7;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             z-index: 10;
         }
-        .draggable-card:hover .flip-button {
+        .card-container:hover .card-corner-lift {
+            border-bottom-width: 30px;
+            border-left-width: 30px;
+            border-bottom-color: rgba(0, 0, 0, 0.2);
+        }
+        .dark .card-corner-lift {
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+        }
+        .dark .card-container:hover .card-corner-lift {
+            border-bottom-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Corner lift label */
+        .corner-lift-label {
+            position: absolute;
+            bottom: 0.25rem;
+            right: 0.25rem;
+            font-size: 0.6rem;
+            color: rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            transform: rotate(-45deg);
+            transform-origin: bottom right;
+            z-index: 11;
+        }
+        .card-container:hover .corner-lift-label {
             opacity: 1;
+            color: rgba(0, 0, 0, 0.6);
         }
-        .flip-button:hover {
-            background: rgba(59, 130, 246, 0.2);
-            transform: scale(1.1);
+        .dark .corner-lift-label {
+            color: rgba(255, 255, 255, 0.4);
         }
-        .dark .flip-button {
-            background: rgba(96, 165, 250, 0.2);
-            color: #60a5fa;
-        }
-        .dark .flip-button:hover {
-            background: rgba(96, 165, 250, 0.2);
+        .dark .card-container:hover .corner-lift-label {
+            color: rgba(255, 255, 255, 0.6);
         }
         /* For Later section styling */
         .for-later-header {
@@ -998,22 +1022,28 @@
             if (liveUrl) {
                 liveLink.href = liveUrl;
                 liveLink.style.display = 'inline-flex';
+                liveLink.classList.add('has-link');
             } else {
                 liveLink.style.display = 'none';
+                liveLink.classList.remove('has-link');
             }
             
             if (githubUrl) {
                 githubLink.href = githubUrl;
                 githubLink.style.display = 'inline-flex';
+                githubLink.classList.add('has-link');
             } else {
                 githubLink.style.display = 'none';
+                githubLink.classList.remove('has-link');
             }
             
             if (renderUrl) {
                 renderLink.href = renderUrl;
                 renderLink.style.display = 'inline-flex';
+                renderLink.classList.add('has-link');
             } else {
                 renderLink.style.display = 'none';
+                renderLink.classList.remove('has-link');
             }
             
             saveData();
@@ -1064,6 +1094,17 @@
                 purple: 'from-purple-100 to-purple-300 dark:from-purple-900 dark:to-purple-700',
                 pink: 'from-pink-100 to-pink-300 dark:from-pink-900 dark:to-pink-700'
             };
+
+            const colorClassesBack = {
+                teal: 'from-teal-200 to-teal-400 dark:from-teal-800 dark:to-teal-600',
+                emerald: 'from-emerald-200 to-emerald-400 dark:from-emerald-800 dark:to-emerald-600',
+                green: 'from-green-200 to-green-400 dark:from-green-800 dark:to-green-600',
+                cyan: 'from-cyan-200 to-cyan-400 dark:from-cyan-800 dark:to-cyan-600',
+                lime: 'from-lime-200 to-lime-400 dark:from-lime-800 dark:to-lime-600',
+                sky: 'from-sky-200 to-sky-400 dark:from-sky-800 dark:to-sky-600',
+                purple: 'from-purple-200 to-purple-400 dark:from-purple-800 dark:to-purple-600',
+                pink: 'from-pink-200 to-pink-400 dark:from-pink-800 dark:to-pink-600'
+            };
             
             const textColorClasses = {
                 teal: 'text-teal-900 dark:text-teal-100',
@@ -1084,9 +1125,8 @@
                 <div class="card-flipper">
                     <div class="card-front bg-gradient-to-br ${colorClasses[selectedColor]} rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 ease-in-out p-4 relative">
                         <button class="delete-project" onclick="deleteProject(this)" title="Delete project">×</button>
-                        <button class="flip-button" onclick="flipCard(this)" title="Flip card">
-                            <svg><use href="#flip-icon"></use></svg>
-                        </button>
+                        <div class="card-corner-lift" onclick="flipCard(this)" title="Flip to see future features"></div>
+                        <div class="corner-lift-label">Later...</div>
                         <h2 class="text-xl font-semibold mb-3 ${textColorClasses[selectedColor]} project-title" contenteditable="true">${projectName}</h2>
                         <ul class="space-y-2">
                             <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
@@ -1115,10 +1155,9 @@
                             </button>
                         </div>
                     </div>
-                    <div class="card-back bg-gradient-to-br ${colorClasses[selectedColor]} rounded-xl shadow-lg p-4 relative">
-                        <button class="flip-button" onclick="flipCard(this)" title="Flip card">
-                            <svg><use href="#flip-icon"></use></svg>
-                        </button>
+                    <div class="card-back bg-gradient-to-br ${colorClassesBack[selectedColor]} rounded-xl shadow-lg p-4 relative">
+                        <div class="card-corner-lift" onclick="flipCard(this)" title="Flip back to main tasks"></div>
+                        <div class="corner-lift-label">Back</div>
                         <h3 class="for-later-header ${textColorClasses[selectedColor]}">For Later...</h3>
                         <ul class="space-y-2 for-later-list">
                             <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
@@ -1266,6 +1305,17 @@
                         purple: 'from-purple-100 to-purple-300 dark:from-purple-900 dark:to-purple-700',
                         pink: 'from-pink-100 to-pink-300 dark:from-pink-900 dark:to-pink-700'
                     };
+
+                    const colorClassesBack = {
+                        teal: 'from-teal-200 to-teal-400 dark:from-teal-800 dark:to-teal-600',
+                        emerald: 'from-emerald-200 to-emerald-400 dark:from-emerald-800 dark:to-emerald-600',
+                        green: 'from-green-200 to-green-400 dark:from-green-800 dark:to-green-600',
+                        cyan: 'from-cyan-200 to-cyan-400 dark:from-cyan-800 dark:to-cyan-600',
+                        lime: 'from-lime-200 to-lime-400 dark:from-lime-800 dark:to-lime-600',
+                        sky: 'from-sky-200 to-sky-400 dark:from-sky-800 dark:to-sky-600',
+                        purple: 'from-purple-200 to-purple-400 dark:from-purple-800 dark:to-purple-600',
+                        pink: 'from-pink-200 to-pink-400 dark:from-pink-800 dark:to-pink-600'
+                    };
                     
                     const textColorClasses = {
                         teal: 'text-teal-900 dark:text-teal-100',
@@ -1325,24 +1375,23 @@
                         <div class="card-flipper">
                             <div class="card-front bg-gradient-to-br ${colorClasses[color]} rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 ease-in-out p-4 relative">
                                 <button class="delete-project" onclick="deleteProject(this)" title="Delete project">×</button>
-                                <button class="flip-button" onclick="flipCard(this)" title="Flip card">
-                                    <svg><use href="#flip-icon"></use></svg>
-                                </button>
+                                <div class="card-corner-lift" onclick="flipCard(this)" title="Flip to see future features"></div>
+                                <div class="corner-lift-label">Later...</div>
                                 <h2 class="text-xl font-semibold mb-3 ${textColorClasses[color]} project-title" contenteditable="true">${projectData.title}</h2>
                                 <ul class="space-y-2">
                                     ${tasksHTML}
                                 </ul>
                                 <button class="add-task-btn" onclick="addTask(this)">+ Add task</button>
                                 <div class="project-links">
-                                    <a href="${showLive ? projectData.links.live : '#'}" class="project-link live-link" target="_blank" style="${showLive ? '' : 'display: none;'}">
+                                    <a href="${showLive ? projectData.links.live : '#'}" class="project-link live-link ${showLive ? 'has-link' : ''}" target="_blank" style="${showLive ? '' : 'display: none;'}">
                                         <svg><use href="#link-icon"></use></svg>
                                         <span>Live</span>
                                     </a>
-                                    <a href="${showGithub ? projectData.links.github : '#'}" class="project-link github-link" target="_blank" style="${showGithub ? '' : 'display: none;'}">
+                                    <a href="${showGithub ? projectData.links.github : '#'}" class="project-link github-link ${showGithub ? 'has-link' : ''}" target="_blank" style="${showGithub ? '' : 'display: none;'}">
                                         <svg><use href="#github-icon"></use></svg>
                                         <span>GitHub</span>
                                     </a>
-                                    <a href="${showRender ? projectData.links.render : '#'}" class="project-link render-link" target="_blank" style="${showRender ? '' : 'display: none;'}">
+                                    <a href="${showRender ? projectData.links.render : '#'}" class="project-link render-link ${showRender ? 'has-link' : ''}" target="_blank" style="${showRender ? '' : 'display: none;'}">
                                         <svg><use href="#render-icon"></use></svg>
                                         <span>Render</span>
                                     </a>
@@ -1352,10 +1401,9 @@
                                     </button>
                                 </div>
                             </div>
-                            <div class="card-back bg-gradient-to-br ${colorClasses[color]} rounded-xl shadow-lg p-4 relative">
-                                <button class="flip-button" onclick="flipCard(this)" title="Flip card">
-                                    <svg><use href="#flip-icon"></use></svg>
-                                </button>
+                            <div class="card-back bg-gradient-to-br ${colorClassesBack[color]} rounded-xl shadow-lg p-4 relative">
+                                <div class="card-corner-lift" onclick="flipCard(this)" title="Flip back to main tasks"></div>
+                                <div class="corner-lift-label">Back</div>
                                 <h3 class="for-later-header ${textColorClasses[color]}">For Later...</h3>
                                 <ul class="space-y-2 for-later-list">
                                     ${forLaterHTML}
