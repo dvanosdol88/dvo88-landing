@@ -18,11 +18,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('.'));
 
-// Create tables if they don't exist
+// Create tables if they don't exist (with dvo88_ prefix to avoid conflicts)
 async function createTables() {
   try {
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS projects (
+      CREATE TABLE IF NOT EXISTS dvo88_projects (
         id SERIAL PRIMARY KEY,
         title VARCHAR(255) NOT NULL,
         color VARCHAR(50) NOT NULL,
@@ -34,9 +34,9 @@ async function createTables() {
     `);
 
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS tasks (
+      CREATE TABLE IF NOT EXISTS dvo88_tasks (
         id SERIAL PRIMARY KEY,
-        project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+        project_id INTEGER REFERENCES dvo88_projects(id) ON DELETE CASCADE,
         text TEXT NOT NULL,
         checked BOOLEAN DEFAULT false,
         accent_color VARCHAR(50) DEFAULT 'blue',
@@ -48,9 +48,9 @@ async function createTables() {
     `);
 
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS project_links (
+      CREATE TABLE IF NOT EXISTS dvo88_project_links (
         id SERIAL PRIMARY KEY,
-        project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+        project_id INTEGER REFERENCES dvo88_projects(id) ON DELETE CASCADE,
         live_url TEXT,
         github_url TEXT,
         render_url TEXT,
@@ -70,18 +70,18 @@ async function createTables() {
 // Get all projects with tasks and links
 app.get('/api/projects', async (req, res) => {
   try {
-    const projectsQuery = await pool.query('SELECT * FROM projects ORDER BY position');
+    const projectsQuery = await pool.query('SELECT * FROM dvo88_projects ORDER BY position');
     const projects = projectsQuery.rows;
 
     // Get tasks and links for each project
     for (let project of projects) {
       const tasksQuery = await pool.query(
-        'SELECT * FROM tasks WHERE project_id = $1 ORDER BY position',
+        'SELECT * FROM dvo88_tasks WHERE project_id = $1 ORDER BY position',
         [project.id]
       );
       
       const linksQuery = await pool.query(
-        'SELECT * FROM project_links WHERE project_id = $1',
+        'SELECT * FROM dvo88_project_links WHERE project_id = $1',
         [project.id]
       );
 
@@ -103,12 +103,12 @@ app.post('/api/projects', async (req, res) => {
     const { title, color, tasks = [], forLaterTasks = [], links = {} } = req.body;
     
     // Get the highest position
-    const maxPosQuery = await pool.query('SELECT COALESCE(MAX(position), 0) as max_pos FROM projects');
+    const maxPosQuery = await pool.query('SELECT COALESCE(MAX(position), 0) as max_pos FROM dvo88_projects');
     const newPosition = maxPosQuery.rows[0].max_pos + 1;
 
     // Insert project
     const projectQuery = await pool.query(
-      'INSERT INTO projects (title, color, position) VALUES ($1, $2, $3) RETURNING *',
+      'INSERT INTO dvo88_projects (title, color, position) VALUES ($1, $2, $3) RETURNING *',
       [title, color, newPosition]
     );
     const project = projectQuery.rows[0];
@@ -116,7 +116,7 @@ app.post('/api/projects', async (req, res) => {
     // Insert tasks
     for (let i = 0; i < tasks.length; i++) {
       await pool.query(
-        'INSERT INTO tasks (project_id, text, checked, accent_color, is_for_later, position) VALUES ($1, $2, $3, $4, $5, $6)',
+        'INSERT INTO dvo88_tasks (project_id, text, checked, accent_color, is_for_later, position) VALUES ($1, $2, $3, $4, $5, $6)',
         [project.id, tasks[i].text, tasks[i].checked || false, tasks[i].accentColor || 'blue', false, i]
       );
     }
@@ -124,14 +124,14 @@ app.post('/api/projects', async (req, res) => {
     // Insert for later tasks
     for (let i = 0; i < forLaterTasks.length; i++) {
       await pool.query(
-        'INSERT INTO tasks (project_id, text, checked, accent_color, is_for_later, position) VALUES ($1, $2, $3, $4, $5, $6)',
+        'INSERT INTO dvo88_tasks (project_id, text, checked, accent_color, is_for_later, position) VALUES ($1, $2, $3, $4, $5, $6)',
         [project.id, forLaterTasks[i].text, forLaterTasks[i].checked || false, forLaterTasks[i].accentColor || 'gray', true, i]
       );
     }
 
     // Insert links
     await pool.query(
-      'INSERT INTO project_links (project_id, live_url, github_url, render_url) VALUES ($1, $2, $3, $4)',
+      'INSERT INTO dvo88_project_links (project_id, live_url, github_url, render_url) VALUES ($1, $2, $3, $4)',
       [project.id, links.live || '', links.github || '', links.render || '']
     );
 
@@ -149,7 +149,7 @@ app.put('/api/projects/:id', async (req, res) => {
     const { title, color, is_flipped } = req.body;
 
     const result = await pool.query(
-      'UPDATE projects SET title = $1, color = $2, is_flipped = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *',
+      'UPDATE dvo88_projects SET title = $1, color = $2, is_flipped = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *',
       [title, color, is_flipped, id]
     );
 
@@ -164,7 +164,7 @@ app.put('/api/projects/:id', async (req, res) => {
 app.delete('/api/projects/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query('DELETE FROM projects WHERE id = $1', [id]);
+    await pool.query('DELETE FROM dvo88_projects WHERE id = $1', [id]);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting project:', error);
@@ -179,7 +179,7 @@ app.put('/api/projects/reorder', async (req, res) => {
     
     for (let i = 0; i < projectIds.length; i++) {
       await pool.query(
-        'UPDATE projects SET position = $1 WHERE id = $2',
+        'UPDATE dvo88_projects SET position = $1 WHERE id = $2',
         [i, projectIds[i]]
       );
     }
@@ -198,13 +198,13 @@ app.post('/api/tasks', async (req, res) => {
     
     // Get the highest position for this project
     const maxPosQuery = await pool.query(
-      'SELECT COALESCE(MAX(position), 0) as max_pos FROM tasks WHERE project_id = $1 AND is_for_later = $2',
+      'SELECT COALESCE(MAX(position), 0) as max_pos FROM dvo88_tasks WHERE project_id = $1 AND is_for_later = $2',
       [project_id, is_for_later]
     );
     const newPosition = maxPosQuery.rows[0].max_pos + 1;
 
     const result = await pool.query(
-      'INSERT INTO tasks (project_id, text, is_for_later, position) VALUES ($1, $2, $3, $4) RETURNING *',
+      'INSERT INTO dvo88_tasks (project_id, text, is_for_later, position) VALUES ($1, $2, $3, $4) RETURNING *',
       [project_id, text, is_for_later, newPosition]
     );
 
@@ -221,7 +221,7 @@ app.put('/api/tasks/:id', async (req, res) => {
     const { text, checked, accent_color } = req.body;
 
     const result = await pool.query(
-      'UPDATE tasks SET text = $1, checked = $2, accent_color = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *',
+      'UPDATE dvo88_tasks SET text = $1, checked = $2, accent_color = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4 RETURNING *',
       [text, checked, accent_color, id]
     );
 
@@ -235,7 +235,7 @@ app.put('/api/tasks/:id', async (req, res) => {
 app.delete('/api/tasks/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query('DELETE FROM tasks WHERE id = $1', [id]);
+    await pool.query('DELETE FROM dvo88_tasks WHERE id = $1', [id]);
     res.json({ success: true });
   } catch (error) {
     console.error('Error deleting task:', error);
@@ -250,7 +250,7 @@ app.put('/api/tasks/reorder', async (req, res) => {
     
     for (let i = 0; i < taskIds.length; i++) {
       await pool.query(
-        'UPDATE tasks SET position = $1 WHERE id = $2 AND project_id = $3 AND is_for_later = $4',
+        'UPDATE dvo88_tasks SET position = $1 WHERE id = $2 AND project_id = $3 AND is_for_later = $4',
         [i, taskIds[i], projectId, isForLater]
       );
     }
@@ -269,19 +269,19 @@ app.put('/api/projects/:id/links', async (req, res) => {
     const { live_url, github_url, render_url } = req.body;
 
     // Check if links exist
-    const existing = await pool.query('SELECT * FROM project_links WHERE project_id = $1', [id]);
+    const existing = await pool.query('SELECT * FROM dvo88_project_links WHERE project_id = $1', [id]);
     
     if (existing.rows.length > 0) {
       // Update existing
       const result = await pool.query(
-        'UPDATE project_links SET live_url = $1, github_url = $2, render_url = $3, updated_at = CURRENT_TIMESTAMP WHERE project_id = $4 RETURNING *',
+        'UPDATE dvo88_project_links SET live_url = $1, github_url = $2, render_url = $3, updated_at = CURRENT_TIMESTAMP WHERE project_id = $4 RETURNING *',
         [live_url, github_url, render_url, id]
       );
       res.json(result.rows[0]);
     } else {
       // Insert new
       const result = await pool.query(
-        'INSERT INTO project_links (project_id, live_url, github_url, render_url) VALUES ($1, $2, $3, $4) RETURNING *',
+        'INSERT INTO dvo88_project_links (project_id, live_url, github_url, render_url) VALUES ($1, $2, $3, $4) RETURNING *',
         [id, live_url, github_url, render_url]
       );
       res.json(result.rows[0]);
