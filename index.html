@@ -353,6 +353,74 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
         }
+        /* Card flip functionality */
+        .card-container {
+            perspective: 1000px;
+            position: relative;
+        }
+        .card-flipper {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            width: 100%;
+        }
+        .card-container.flipped .card-flipper {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            backface-visibility: hidden;
+            position: relative;
+            width: 100%;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        /* Flip button styling */
+        .flip-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 2.5rem;
+            width: 1.75rem;
+            height: 1.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 1rem;
+            opacity: 0;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+        .draggable-card:hover .flip-button {
+            opacity: 1;
+        }
+        .flip-button:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: scale(1.1);
+        }
+        .dark .flip-button {
+            background: rgba(96, 165, 250, 0.1);
+            color: #60a5fa;
+        }
+        .dark .flip-button:hover {
+            background: rgba(96, 165, 250, 0.2);
+        }
+        /* For Later section styling */
+        .for-later-header {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-white via-teal-50 to-green-50 dark:from-gray-900 dark:to-slate-800 text-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -375,6 +443,9 @@
         <symbol id="plus-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
+        </symbol>
+        <symbol id="flip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 0 1 9-9"></path>
         </symbol>
     </svg>
 
@@ -680,7 +751,7 @@
             <h3>Create New Project</h3>
             <label>
                 <div style="margin-bottom: 0.25rem; font-size: 0.875rem;" class="text-gray-600 dark:text-gray-300">Project Name</div>
-                <input type="text" id="project-name-input" placeholder="My New Project">
+                <input type="text" id="project-name-input" placeholder="My New Project" class="text-gray-900 dark:text-white">
             </label>
             <label>
                 <div style="margin-bottom: 0.25rem; font-size: 0.875rem;" class="text-gray-600 dark:text-gray-300">Choose Color Theme</div>
@@ -712,7 +783,22 @@
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 try {
-                    return JSON.parse(saved);
+                    const data = JSON.parse(saved);
+                    
+                    // Filter out broken template variables
+                    const cleanedData = data.filter(project => {
+                        return !project.title.includes('${') && 
+                               !project.title.includes('projectName') && 
+                               !project.title.includes('projectData');
+                    });
+                    
+                    // Save cleaned data if we removed any broken entries
+                    if (cleanedData.length !== data.length) {
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanedData));
+                        console.log('Removed', data.length - cleanedData.length, 'broken template entries');
+                    }
+                    
+                    return cleanedData;
                 } catch (e) {
                     console.error('Error loading saved data:', e);
                 }
@@ -722,11 +808,19 @@
 
         // Save data to localStorage
         function saveData() {
-            const projects = [];
-            document.querySelectorAll('.draggable-card').forEach((card, index) => {
+            try {
+                const projects = [];
+                const cards = document.querySelectorAll('.draggable-card');
+                console.log('Saving', cards.length, 'projects');
+                
+                cards.forEach((card, index) => {
                 const title = card.querySelector('.project-title').innerText;
                 const tasks = [];
-                card.querySelectorAll('.task-item').forEach(task => {
+                const forLaterTasks = [];
+                const isFlipped = card.classList.contains('flipped');
+                
+                // Get front tasks
+                card.querySelectorAll('.card-front .task-item').forEach(task => {
                     const checkbox = task.querySelector('input[type="checkbox"]');
                     const text = task.querySelector('.task-text').innerText;
                     const accentColor = checkbox.classList.contains('accent-red-500') ? 'red' : 'blue';
@@ -736,6 +830,17 @@
                         accentColor: accentColor
                     });
                 });
+                
+                // Get back tasks (for later)
+                card.querySelectorAll('.card-back .task-item').forEach(task => {
+                    const checkbox = task.querySelector('input[type="checkbox"]');
+                    const text = task.querySelector('.task-text').innerText;
+                    forLaterTasks.push({
+                        text: text,
+                        checked: checkbox.checked
+                    });
+                });
+                
                 // Get project links
                 const links = {
                     live: card.querySelector('.live-link')?.href || '',
@@ -743,27 +848,40 @@
                     render: card.querySelector('.render-link')?.href || ''
                 };
                 
+                // Extract just the color gradient classes
+                const colorMatch = card.className.match(/from-(\w+)-\d+ to-(\w+)-\d+/);
+                const colorName = colorMatch ? colorMatch[1] : 'teal';
+                
                 projects.push({
                     title: title,
                     tasks: tasks,
+                    forLaterTasks: forLaterTasks,
                     links: links,
-                    colorClass: card.className,
+                    color: colorName,
+                    isFlipped: isFlipped,
                     index: index
                 });
             });
             localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+            console.log('Saved to localStorage:', projects.length, 'projects');
+            } catch (error) {
+                console.error('Error saving data:', error);
+                alert('Error saving data: ' + error.message);
+            }
         }
 
         // Add a new task
-        function addTask(button) {
+        function addTask(button, isForLater = false) {
             const card = button.closest('.draggable-card');
-            const ul = card.querySelector('ul');
+            const side = isForLater ? '.card-back' : '.card-front';
+            const ul = card.querySelector(`${side} ul`);
             
             const li = document.createElement('li');
             li.className = 'flex items-center text-gray-700 dark:text-gray-300 task-item';
+            const accentColor = isForLater ? 'gray' : 'blue';
             li.innerHTML = `
-                <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
-                <span class="task-text" contenteditable="true">New task</span>
+                <input type="checkbox" class="mr-3 accent-${accentColor}-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-${accentColor}-500/50">
+                <span class="task-text" contenteditable="true">${isForLater ? 'Future task' : 'New task'}</span>
                 <span class="delete-task" onclick="deleteTask(this)">×</span>
             `;
             
@@ -942,38 +1060,59 @@
                 pink: 'text-pink-900 dark:text-pink-100'
             };
             
-            // Create new card element
+            // Create new card element with flip structure
             const newCard = document.createElement('div');
-            newCard.className = `draggable-card bg-gradient-to-br ${colorClasses[selectedColor]} rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 ease-in-out p-4 relative`;
+            newCard.className = `draggable-card card-container`;
             
             newCard.innerHTML = `
-                <button class="delete-project" onclick="deleteProject(this)" title="Delete project">×</button>
-                <h2 class="text-xl font-semibold mb-3 ${textColorClasses[selectedColor]} project-title" contenteditable="true">${projectName}</h2>
-                <ul class="space-y-2">
-                    <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
-                        <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
-                        <span class="task-text" contenteditable="true">First task</span>
-                        <span class="delete-task" onclick="deleteTask(this)">×</span>
-                    </li>
-                </ul>
-                <button class="add-task-btn" onclick="addTask(this)">+ Add task</button>
-                <div class="project-links">
-                    <a href="#" class="project-link live-link" target="_blank" style="display: none;">
-                        <svg><use href="#link-icon"></use></svg>
-                        <span>Live</span>
-                    </a>
-                    <a href="#" class="project-link github-link" target="_blank" style="display: none;">
-                        <svg><use href="#github-icon"></use></svg>
-                        <span>GitHub</span>
-                    </a>
-                    <a href="#" class="project-link render-link" target="_blank" style="display: none;">
-                        <svg><use href="#render-icon"></use></svg>
-                        <span>Render</span>
-                    </a>
-                    <button class="project-link edit-links" onclick="editProjectLinks(this)">
-                        <svg><use href="#edit-icon"></use></svg>
-                        <span>Edit Links</span>
-                    </button>
+                <div class="card-flipper">
+                    <div class="card-front bg-gradient-to-br ${colorClasses[selectedColor]} rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 ease-in-out p-4 relative">
+                        <button class="delete-project" onclick="deleteProject(this)" title="Delete project">×</button>
+                        <button class="flip-button" onclick="flipCard(this)" title="Flip card">
+                            <svg><use href="#flip-icon"></use></svg>
+                        </button>
+                        <h2 class="text-xl font-semibold mb-3 ${textColorClasses[selectedColor]} project-title" contenteditable="true">${projectName}</h2>
+                        <ul class="space-y-2">
+                            <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
+                                <input type="checkbox" class="mr-3 accent-blue-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-blue-500/50">
+                                <span class="task-text" contenteditable="true">First task</span>
+                                <span class="delete-task" onclick="deleteTask(this)">×</span>
+                            </li>
+                        </ul>
+                        <button class="add-task-btn" onclick="addTask(this)">+ Add task</button>
+                        <div class="project-links">
+                            <a href="#" class="project-link live-link" target="_blank" style="display: none;">
+                                <svg><use href="#link-icon"></use></svg>
+                                <span>Live</span>
+                            </a>
+                            <a href="#" class="project-link github-link" target="_blank" style="display: none;">
+                                <svg><use href="#github-icon"></use></svg>
+                                <span>GitHub</span>
+                            </a>
+                            <a href="#" class="project-link render-link" target="_blank" style="display: none;">
+                                <svg><use href="#render-icon"></use></svg>
+                                <span>Render</span>
+                            </a>
+                            <button class="project-link edit-links" onclick="editProjectLinks(this)">
+                                <svg><use href="#edit-icon"></use></svg>
+                                <span>Edit Links</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-back bg-gradient-to-br ${colorClasses[selectedColor]} rounded-xl shadow-lg p-4 relative">
+                        <button class="flip-button" onclick="flipCard(this)" title="Flip card">
+                            <svg><use href="#flip-icon"></use></svg>
+                        </button>
+                        <h3 class="for-later-header ${textColorClasses[selectedColor]}">For Later...</h3>
+                        <ul class="space-y-2 for-later-list">
+                            <li class="flex items-center text-gray-700 dark:text-gray-300 task-item">
+                                <input type="checkbox" class="mr-3 accent-gray-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-gray-500/50">
+                                <span class="task-text" contenteditable="true">Future enhancement</span>
+                                <span class="delete-task" onclick="deleteTask(this)">×</span>
+                            </li>
+                        </ul>
+                        <button class="add-task-btn" onclick="addTask(this, true)">+ Add for later</button>
+                    </div>
                 </div>
             `;
             
@@ -1008,6 +1147,24 @@
             const titleElement = newCard.querySelector('.project-title');
             titleElement.focus();
             selectAllText(titleElement);
+            
+            // Verify save after a short delay
+            setTimeout(() => {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    console.log('Verified save - projects in storage:', data.length);
+                } else {
+                    console.error('No data found in localStorage after save!');
+                }
+            }, 100);
+        }
+
+        // Flip card function
+        function flipCard(button) {
+            const container = button.closest('.card-container');
+            container.classList.toggle('flipped');
+            saveData();
         }
 
         // Toggle strikethrough on selected text
@@ -1047,65 +1204,137 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Load saved data
             const savedData = loadData();
-            if (savedData) {
-                // Apply saved data
+            if (savedData && savedData.length > 0) {
+                // Clear existing cards and recreate from saved data
+                const grid = document.getElementById('project-grid');
+                const addProjectCard = document.querySelector('.add-project-card');
+                
+                // Remove all existing project cards (but not the add button)
+                document.querySelectorAll('.draggable-card').forEach(card => card.remove());
+                
+                // Recreate all cards from saved data
                 savedData.forEach(projectData => {
-                    const cards = document.querySelectorAll('.draggable-card');
-                    if (cards[projectData.index]) {
-                        const card = cards[projectData.index];
-                        
-                        // Update title
-                        const titleElement = card.querySelector('.project-title');
-                        if (titleElement) {
-                            titleElement.innerText = projectData.title;
-                        }
-                        
-                        // Update tasks
-                        const ul = card.querySelector('ul');
-                        ul.innerHTML = ''; // Clear existing tasks
-                        
+                    const colorClasses = {
+                        teal: 'from-teal-100 to-teal-300 dark:from-teal-900 dark:to-teal-700',
+                        emerald: 'from-emerald-100 to-emerald-300 dark:from-emerald-900 dark:to-emerald-700',
+                        green: 'from-green-100 to-green-300 dark:from-green-900 dark:to-green-700',
+                        cyan: 'from-cyan-100 to-cyan-300 dark:from-cyan-900 dark:to-cyan-700',
+                        lime: 'from-lime-100 to-lime-300 dark:from-lime-900 dark:to-lime-700',
+                        sky: 'from-sky-100 to-sky-300 dark:from-sky-900 dark:to-sky-700',
+                        purple: 'from-purple-100 to-purple-300 dark:from-purple-900 dark:to-purple-700',
+                        pink: 'from-pink-100 to-pink-300 dark:from-pink-900 dark:to-pink-700'
+                    };
+                    
+                    const textColorClasses = {
+                        teal: 'text-teal-900 dark:text-teal-100',
+                        emerald: 'text-emerald-900 dark:text-emerald-100',
+                        green: 'text-green-900 dark:text-green-100',
+                        cyan: 'text-cyan-900 dark:text-cyan-100',
+                        lime: 'text-lime-900 dark:text-lime-100',
+                        sky: 'text-sky-900 dark:text-sky-100',
+                        purple: 'text-purple-900 dark:text-purple-100',
+                        pink: 'text-pink-900 dark:text-pink-100'
+                    };
+                    
+                    const color = projectData.color || 'teal';
+                    const card = document.createElement('div');
+                    card.className = `draggable-card card-container ${projectData.isFlipped ? 'flipped' : ''}`;
+                    
+                    // Build front tasks HTML
+                    let tasksHTML = '';
+                    if (projectData.tasks) {
                         projectData.tasks.forEach(taskData => {
-                            const li = document.createElement('li');
-                            li.className = 'flex items-center text-gray-700 dark:text-gray-300 task-item';
-                            if (taskData.checked) {
-                                li.classList.add('checked');
-                            }
-                            
-                            const accentClass = taskData.accentColor === 'red' ? 'accent-red-500' : 'accent-blue-500';
-                            const focusClass = taskData.accentColor === 'red' ? 'focus:ring-red-500/50' : 'focus:ring-blue-500/50';
-                            
-                            li.innerHTML = `
+                        const accentClass = taskData.accentColor === 'red' ? 'accent-red-500' : 'accent-blue-500';
+                        const focusClass = taskData.accentColor === 'red' ? 'focus:ring-red-500/50' : 'focus:ring-blue-500/50';
+                        const checkedClass = taskData.checked ? 'checked' : '';
+                        
+                        tasksHTML += `
+                            <li class="flex items-center text-gray-700 dark:text-gray-300 task-item ${checkedClass}">
                                 <input type="checkbox" class="mr-3 ${accentClass} bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 ${focusClass}" ${taskData.checked ? 'checked' : ''}>
                                 <span class="task-text" contenteditable="true">${taskData.text}</span>
                                 <span class="delete-task" onclick="deleteTask(this)">×</span>
-                            `;
-                            
-                            ul.appendChild(li);
+                            </li>
+                        `;
                         });
-                        
-                        // Apply saved links
-                        if (projectData.links) {
-                            const liveLink = card.querySelector('.live-link');
-                            const githubLink = card.querySelector('.github-link');
-                            const renderLink = card.querySelector('.render-link');
+                    }
+                    
+                    // Build for later tasks HTML
+                    let forLaterHTML = '';
+                    if (projectData.forLaterTasks) {
+                        projectData.forLaterTasks.forEach(taskData => {
+                            const checkedClass = taskData.checked ? 'checked' : '';
                             
-                            if (projectData.links.live && projectData.links.live !== '#') {
-                                liveLink.href = projectData.links.live;
-                                liveLink.style.display = 'inline-flex';
-                            }
-                            
-                            if (projectData.links.github && projectData.links.github !== '#') {
-                                githubLink.href = projectData.links.github;
-                                githubLink.style.display = 'inline-flex';
-                            }
-                            
-                            if (projectData.links.render && projectData.links.render !== '#') {
-                                renderLink.href = projectData.links.render;
-                                renderLink.style.display = 'inline-flex';
-                            }
-                        }
+                            forLaterHTML += `
+                                <li class="flex items-center text-gray-700 dark:text-gray-300 task-item ${checkedClass}">
+                                    <input type="checkbox" class="mr-3 accent-gray-500 bg-transparent border-gray-400 dark:bg-gray-700 focus:ring-2 focus:ring-gray-500/50" ${taskData.checked ? 'checked' : ''}>
+                                    <span class="task-text" contenteditable="true">${taskData.text}</span>
+                                    <span class="delete-task" onclick="deleteTask(this)">×</span>
+                                </li>
+                            `;
+                        });
+                    }
+                    
+                    // Set up links visibility
+                    const showLive = projectData.links?.live && projectData.links.live !== '#' && projectData.links.live !== '';
+                    const showGithub = projectData.links?.github && projectData.links.github !== '#' && projectData.links.github !== '';
+                    const showRender = projectData.links?.render && projectData.links.render !== '#' && projectData.links.render !== '';
+                    
+                    card.innerHTML = `
+                        <div class="card-flipper">
+                            <div class="card-front bg-gradient-to-br ${colorClasses[color]} rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 ease-in-out p-4 relative">
+                                <button class="delete-project" onclick="deleteProject(this)" title="Delete project">×</button>
+                                <button class="flip-button" onclick="flipCard(this)" title="Flip card">
+                                    <svg><use href="#flip-icon"></use></svg>
+                                </button>
+                                <h2 class="text-xl font-semibold mb-3 ${textColorClasses[color]} project-title" contenteditable="true">${projectData.title}</h2>
+                                <ul class="space-y-2">
+                                    ${tasksHTML}
+                                </ul>
+                                <button class="add-task-btn" onclick="addTask(this)">+ Add task</button>
+                                <div class="project-links">
+                                    <a href="${showLive ? projectData.links.live : '#'}" class="project-link live-link" target="_blank" style="${showLive ? '' : 'display: none;'}">
+                                        <svg><use href="#link-icon"></use></svg>
+                                        <span>Live</span>
+                                    </a>
+                                    <a href="${showGithub ? projectData.links.github : '#'}" class="project-link github-link" target="_blank" style="${showGithub ? '' : 'display: none;'}">
+                                        <svg><use href="#github-icon"></use></svg>
+                                        <span>GitHub</span>
+                                    </a>
+                                    <a href="${showRender ? projectData.links.render : '#'}" class="project-link render-link" target="_blank" style="${showRender ? '' : 'display: none;'}">
+                                        <svg><use href="#render-icon"></use></svg>
+                                        <span>Render</span>
+                                    </a>
+                                    <button class="project-link edit-links" onclick="editProjectLinks(this)">
+                                        <svg><use href="#edit-icon"></use></svg>
+                                        <span>Edit Links</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-back bg-gradient-to-br ${colorClasses[color]} rounded-xl shadow-lg p-4 relative">
+                                <button class="flip-button" onclick="flipCard(this)" title="Flip card">
+                                    <svg><use href="#flip-icon"></use></svg>
+                                </button>
+                                <h3 class="for-later-header ${textColorClasses[color]}">For Later...</h3>
+                                <ul class="space-y-2 for-later-list">
+                                    ${forLaterHTML}
+                                </ul>
+                                <button class="add-task-btn" onclick="addTask(this, true)">+ Add for later</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Insert the card before the add button
+                    if (addProjectCard) {
+                        grid.insertBefore(card, addProjectCard);
+                    } else {
+                        grid.appendChild(card);
                     }
                 });
+                
+                // Ensure the add button is at the end
+                if (addProjectCard && addProjectCard.parentNode !== grid) {
+                    grid.appendChild(addProjectCard);
+                }
             }
 
             // Add event listeners to all checkboxes
