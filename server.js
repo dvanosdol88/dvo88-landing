@@ -67,6 +67,11 @@ async function createTables() {
 
 // API Routes
 
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'DVO88 Dashboard API is running' });
+});
+
 // Get all projects with tasks and links
 app.get('/api/projects', async (req, res) => {
   try {
