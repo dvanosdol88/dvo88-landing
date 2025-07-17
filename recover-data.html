@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recover Dashboard Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Data Recovery Tool</h1>
+    
+    <h2>Step 1: Check for Existing Data</h2>
+    <button onclick="checkData()">Check LocalStorage</button>
+    <div id="dataCheck"></div>
+    
+    <h2>Step 2: View Your Data</h2>
+    <button onclick="viewData()">View Current Data</button>
+    <pre id="dataView"></pre>
+    
+    <h2>Step 3: Export Your Data</h2>
+    <button onclick="exportData()">Export as JSON</button>
+    <span id="exportStatus"></span>
+    
+    <h2>Step 4: Fix Storage Key</h2>
+    <button onclick="fixStorageKey()">Fix Storage Key</button>
+    <span id="fixStatus"></span>
+    
+    <script>
+        const CORRECT_KEY = 'dvo88-project-dashboard';
+        const POSSIBLE_KEYS = [
+            'project-dashboard-data',
+            'projectDashboardData',
+            'dvo88-projects',
+            'projects-data',
+            CORRECT_KEY
+        ];
+        
+        function checkData() {
+            const output = document.getElementById('dataCheck');
+            let html = '<h3>LocalStorage Keys Found:</h3><ul>';
+            let foundData = false;
+            
+            // Check all localStorage keys
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                
+                try {
+                    const parsed = JSON.parse(value);
+                    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].title) {
+                        html += `<li class="success">✅ <strong>${key}</strong> - Contains ${parsed.length} projects</li>`;
+                        foundData = true;
+                    }
+                } catch (e) {
+                    // Not JSON or not project data
+                }
+            }
+            
+            if (!foundData) {
+                html += '<li class="error">No project data found in localStorage</li>';
+            }
+            
+            html += '</ul>';
+            output.innerHTML = html;
+        }
+        
+        function viewData() {
+            const output = document.getElementById('dataView');
+            let data = null;
+            let sourceKey = null;
+            
+            // Try to find data under any key
+            for (const key of POSSIBLE_KEYS) {
+                const stored = localStorage.getItem(key);
+                if (stored) {
+                    try {
+                        const parsed = JSON.parse(stored);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            data = parsed;
+                            sourceKey = key;
+                            break;
+                        }
+                    } catch (e) {}
+                }
+            }
+            
+            // Also check for any key containing project data
+            if (!data) {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    const value = localStorage.getItem(key);
+                    try {
+                        const parsed = JSON.parse(value);
+                        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].title) {
+                            data = parsed;
+                            sourceKey = key;
+                            break;
+                        }
+                    } catch (e) {}
+                }
+            }
+            
+            if (data) {
+                output.textContent = JSON.stringify(data, null, 2);
+                output.innerHTML = `<strong>Found under key: ${sourceKey}</strong>\n\n` + output.innerHTML;
+            } else {
+                output.innerHTML = '<span class="error">No project data found</span>';
+            }
+        }
+        
+        function exportData() {
+            const status = document.getElementById('exportStatus');
+            let data = null;
+            
+            // Find data
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                try {
+                    const parsed = JSON.parse(value);
+                    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].title) {
+                        data = parsed;
+                        break;
+                    }
+                } catch (e) {}
+            }
+            
+            if (data) {
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'dashboard-backup-' + new Date().toISOString().split('T')[0] + '.json';
+                a.click();
+                status.innerHTML = '<span class="success">✅ Data exported!</span>';
+            } else {
+                status.innerHTML = '<span class="error">❌ No data to export</span>';
+            }
+        }
+        
+        function fixStorageKey() {
+            const status = document.getElementById('fixStatus');
+            let foundData = false;
+            let sourceKey = null;
+            let data = null;
+            
+            // Find data under wrong key
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key !== CORRECT_KEY) {
+                    const value = localStorage.getItem(key);
+                    try {
+                        const parsed = JSON.parse(value);
+                        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].title) {
+                            data = parsed;
+                            sourceKey = key;
+                            foundData = true;
+                            break;
+                        }
+                    } catch (e) {}
+                }
+            }
+            
+            if (foundData && data) {
+                // Save under correct key
+                localStorage.setItem(CORRECT_KEY, JSON.stringify(data));
+                status.innerHTML = `<span class="success">✅ Moved ${data.length} projects from "${sourceKey}" to "${CORRECT_KEY}"</span>`;
+                
+                // Optionally remove old key
+                if (confirm(`Remove data from old key "${sourceKey}"?`)) {
+                    localStorage.removeItem(sourceKey);
+                    status.innerHTML += '<br><span class="success">✅ Old key removed</span>';
+                }
+            } else {
+                // Check if data is already under correct key
+                const existing = localStorage.getItem(CORRECT_KEY);
+                if (existing) {
+                    try {
+                        const parsed = JSON.parse(existing);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            status.innerHTML = '<span class="success">✅ Data is already under correct key</span>';
+                        }
+                    } catch (e) {}
+                } else {
+                    status.innerHTML = '<span class="error">❌ No project data found to fix</span>';
+                }
+            }
+        }
+        
+        // Auto-check on load
+        window.onload = () => {
+            checkData();
+        };
+    </script>
+</body>
+</html>
