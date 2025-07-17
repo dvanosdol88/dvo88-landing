@@ -387,22 +387,26 @@
             transform-style: preserve-3d;
             transition: transform 0.6s;
             width: 100%;
+            min-height: 200px;
         }
         .card-container.flipped .card-flipper {
             transform: rotateY(180deg);
         }
         .card-front, .card-back {
             backface-visibility: hidden;
-            position: relative;
-            width: 100%;
-        }
-        .card-back {
-            transform: rotateY(180deg);
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            bottom: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .card-front {
+            position: relative;
+            transform: rotateY(0deg);
+        }
+        .card-back {
+            transform: rotateY(180deg);
         }
         /* Corner lift effect styling */
         .card-corner-lift {
@@ -562,10 +566,18 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="api-client.js"></script>
     <script>
         // Storage key for persistence
         const STORAGE_KEY = 'dvo88-project-dashboard';
         let currentEditingCard = null;
+        let projectAPI = null;
+        
+        // Initialize API client
+        if (typeof ProjectAPI !== 'undefined') {
+            projectAPI = new ProjectAPI();
+        }
 
         // Load saved data from localStorage
         function loadData() {
